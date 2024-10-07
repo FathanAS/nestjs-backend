@@ -1,35 +1,34 @@
-import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
 import BaseResponse from 'src/utils/response.utils';
-import { Repository } from 'typeorm';
-import { User } from './auth.entity';
-import { RegisterDto, LoginDto } from './auth.dto';
+import { User } from "./auth.entity";
+import { Repository } from "typeorm";
 import { ResponseSuccess } from 'src/interface';
-import { hash, compare } from 'bcrypt';
+import { RegisterDto, LoginDto } from "./auth.dto";
+import { hash, compare } from "bcrypt"; //import hash
 
 @Injectable()
 export class AuthService extends BaseResponse {
   constructor(
-    @InjectRepository(User) private readonly authRepository: Repository<User>,
+    @InjectRepository(User) private readonly authRepository: Repository<User>
   ) {
     super();
   }
 
   async register(payload: RegisterDto): Promise<ResponseSuccess> {
-    // memeriksa apakah email tersebut sudah ada atau belum
-    const checkUserExist = await this.authRepository.findOne({
+    const checkUserExists = await this.authRepository.findOne({
       where: {
         email: payload.email,
       },
     });
-    if (checkUserExist) {
-      throw new HttpException('email sudah digunakan', HttpStatus.FOUND);
+    if (checkUserExists) {
+      throw new HttpException("User already registered", HttpStatus.FOUND);
     }
-    // hash password
-    payload.password = await hash(payload.password, 12);
-    // hash password
+
+    payload.password = await hash(payload.password, 12); //hash password
     await this.authRepository.save(payload);
-    return this._success('Register Berhasil');
+
+    return this._success("Register Berhasil");
   }
 
   async login(payload: LoginDto): Promise<ResponseSuccess> {
